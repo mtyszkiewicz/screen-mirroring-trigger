@@ -1,66 +1,60 @@
 # screen-mirroring-trigger
 
-Executes a command when AirPlay screen mirroring starts on macOS.
+Runs a command when it detects AirPlay screen-mirroring traffic on macOS. I use it to switch my receiver to the TV profile.
 
-## How it works
+It watches `awdl0` for packets destined for port `7000`. The first packet triggers the command; subsequent packets do nothing until there have been 30 seconds of silence. Nothing runs when traffic stops.
 
-Monitors the `awdl0` (Apple Wireless Direct Link) interface for AirPlay connections to port 7000, which is used for screen mirroring. When a stream **starts**, it executes a configurable command **once**; further packets while the stream is active are ignored so manual receiver changes (e.g. volume) are not overwritten. After `silence` seconds with no packets the stream is considered ended, and the next packet triggers the command again.
+This is a traffic-based guess, not an AirPlay session API. Unrelated traffic can trigger it, and a long enough pause can cause it to fire again.
 
-## Requirements
+## Install
 
-- macOS with Go installed
-- Root/sudo access (required for packet capture)
-- libpcap (pre-installed on macOS)
+Requires macOS, Go, and sudo access for packet capture. Uses macOS’s bundled libpcap.
 
-## Setup
-
-**1. Edit the plist before installing**
-
-Open `dev.mtyszkiewicz.screen-mirroring-trigger.plist` and change the command:
+Edit `dev.mtyszkiewicz.screen-mirroring-trigger.plist` and replace my command with yours:
 
 ```xml
 <string>-command</string>
-<string>curl -X PUT http://10.205.0.5:8001/profile?name=tv</string>
+<string>/usr/bin/curl -X PUT http://10.205.0.5:8001/profile?name=tv</string>
 ```
 
-This example switches my Onkyo amplituner to TV mode. **Replace with your own command.**
+Then run:
 
-Optionally adjust the silence threshold (seconds without packets before a stream is considered ended):
-```xml
-<string>-silence</string>
-<string>30</string>
-```
-AirPlay mirroring sends packets continuously while active, so silence reliably means the stream stopped. 30s tolerates brief WiFi blips without re-triggering.
-
-**2. Install**
-
-```bash
-chmod +x install.sh uninstall.sh
+```sh
 ./install.sh
 ```
 
-This will:
-1. Build the binary
-2. Install it to `/usr/local/bin/screen-mirroring-trigger`
-3. Install and load a LaunchDaemon to run at startup
+The installer builds the program, copies it to `/usr/local/bin`, and starts a system LaunchDaemon. It runs as root and starts automatically at boot.
 
-## Manual Usage
+To change the command or silence timeout, edit the plist in this directory and rerun `./install.sh`.
 
-You can also run it manually:
+## Run manually
 
-```bash
-sudo screen-mirroring-trigger -silence 60 -command "echo 'Screen mirroring started!'"
+Without installing the daemon:
+
+```sh
+go build -o screen-mirroring-trigger .
+sudo ./screen-mirroring-trigger -command "/usr/bin/echo Mirroring detected"
 ```
+
+| Flag | Description |
+| --- | --- |
+| `-command` | Command to run when traffic starts. Required. |
+| `-silence` | Seconds without packets before another trigger is allowed. Default: `30`. |
+
+Commands are split on whitespace, not interpreted by a shell. Quotes inside the command, pipes, redirects, and variable expansion are not supported. For anything more involved, use an executable script and pass its absolute path.
+
+The command runs synchronously, so keep it short.
 
 ## Logs
 
-View logs:
-```bash
-tail -f /tmp/screen-mirroring-trigger.log
+```sh
+tail -f /tmp/screen-mirroring-trigger.log /tmp/screen-mirroring-trigger.err
 ```
 
 ## Uninstall
 
-```bash
-./uninstall.sh
+```sh
+sudo ./uninstall.sh
 ```
+
+Stops the daemon and removes the installed binary, plist, and logs.
