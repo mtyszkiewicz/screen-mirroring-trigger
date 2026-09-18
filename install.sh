@@ -23,14 +23,7 @@ sudo launchctl bootout system /Library/LaunchDaemons/dev.mtyszkiewicz.screen-mir
 sudo launchctl bootstrap system /Library/LaunchDaemons/dev.mtyszkiewicz.screen-mirroring-trigger.plist
 
 echo ""
-echo "✓ screen-mirroring-trigger installed successfully!"
+echo "✓ screen-mirroring-trigger installed and running."
 echo ""
-echo "Default settings:"
-echo "  Silence: 30s"
-echo "  Command: curl -X PUT http://10.205.0.5:8001/profile?name=tv"
-echo ""
-echo "To customize, edit /Library/LaunchDaemons/dev.mtyszkiewicz.screen-mirroring-trigger.plist"
-echo "Then reload: sudo launchctl bootout system /Library/LaunchDaemons/dev.mtyszkiewicz.screen-mirroring-trigger.plist"
-echo "             sudo launchctl bootstrap system /Library/LaunchDaemons/dev.mtyszkiewicz.screen-mirroring-trigger.plist"
-echo ""
-echo "Check logs: tail -f /tmp/screen-mirroring-trigger.log"
+echo "Edit dev.mtyszkiewicz.screen-mirroring-trigger.plist, then re-run ./install.sh to apply."
+echo "Logs: tail -f /tmp/screen-mirroring-trigger.log"
