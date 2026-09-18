@@ -7,7 +7,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/bin/screen-mirroring-trigger</string>
-        <string>-cooldown</string>
+        <string>-silence</string>
         <string>30</string>
         <string>-command</string>
         <string>curl -X PUT http://10.205.0.5:8001/profile?name=tv</string>
